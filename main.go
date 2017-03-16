@@ -1,26 +1,38 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
 	"sync"
+
 	"github.com/fatih/color"
 )
 
-const winExt = ".exe"
-const buildPath = "dist"
+const (
+	windowsExtension = ".exe"
+	buildPath        = "dist"
+)
 
-var project string
-var pwd string
+var (
+	project string
+	pwd     string
 
-var currOs string
-var currArch string
+	currentOS             string
+	currentArchchitecture string
+
+	architectures = []string{"amd64", "386"}
+	systems       = []string{"darwin", "linux", "windows"}
+
+	// user specified system to target
+	target string
+)
 
 func init() {
 	// Record the environment variables before proceeding
-	getEnvironement()
+	getFromEnvironement()
 
 	// Split and store paths for later use
 	currentPath, err := os.Getwd()
@@ -32,28 +44,43 @@ func init() {
 }
 
 func main() {
-	var wg sync.WaitGroup
-	arch := []string{"amd64", "386"}
-	syst := []string{"darwin", "linux", "windows"}
+	flag.StringVar(&target, "for", "", "builder -for linux")
+	flag.Parse()
+
+	// only pass in current target
+	if target != "" && isSupported(target) {
+		systems = []string{target}
+	}
 
 	clearBuilds()
 
-	color.Green("%s" ,fmt.Sprintf("Starting build in:\n%s%s", pwd, project))
+	color.Green("%s", fmt.Sprintf("Starting build in:\n%s%s", pwd, project))
 
-	for _, o := range syst {
-		for _, a := range arch {
+	var wg sync.WaitGroup
+	for _, targetSystem := range systems {
+		for _, targetArch := range architectures {
 			wg.Add(1)
-			go performBuild(&wg, o, a)
+			go performBuild(&wg, targetSystem, targetArch)
 			wg.Wait()
 		}
 	}
 	// reset the environment before exiting
-	setEnvironement(currOs, currArch)
+	setEnvironement(currentOS, currentArchchitecture)
 
 	notice := color.GreenString("Done!\nYou will your build under the '%s' folder", buildPath)
 	fmt.Println(notice)
 }
 
+func isSupported(target string) bool {
+	for _, sys := range systems {
+		if target == sys {
+			return true
+		}
+	}
+	return false
+}
+
+// clearBuilds removes the old builds before starting a new one
 func clearBuilds() {
 	_, err := os.Stat(buildPath)
 	if err != nil {
@@ -96,8 +123,8 @@ func performBuild(wg *sync.WaitGroup, o, a string) {
 
 	// I could use os.Rename, but linking and removing after is safer...
 	if o == "windows" {
-		filename := fmt.Sprintf("%s%s", project, winExt)
-		os.Link(filename, fmt.Sprintf("./%s/%s/%s%s", buildPath, platform, project, winExt))
+		filename := fmt.Sprintf("%s%s", project, windowsExtension)
+		os.Link(filename, fmt.Sprintf("./%s/%s/%s%s", buildPath, platform, project, windowsExtension))
 		os.Remove(filename)
 	} else {
 		os.Link(project, fmt.Sprintf("./%s/%s/%s", buildPath, platform, project))
@@ -105,9 +132,9 @@ func performBuild(wg *sync.WaitGroup, o, a string) {
 	}
 }
 
-func getEnvironement() {
-	currOs = os.Getenv("GOOS")
-	currArch = os.Getenv("GOARCH")
+func getFromEnvironement() {
+	currentOS = os.Getenv("GOOS")
+	currentArchchitecture = os.Getenv("GOARCH")
 }
 
 func setEnvironement(system, architecture string) {
