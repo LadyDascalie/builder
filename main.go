@@ -114,7 +114,7 @@ func performBuild(wg *sync.WaitGroup, o, a string) {
 	// Set the environment to the currently targeted build
 	setEnvironement(o, a)
 
-	err = executeBuild()
+	err = executeGoBuild()
 	if err != nil {
 		fmt.Println("Error running build command", err)
 		fmt.Println("Make sure you are running this tool where your main.go is located!")
@@ -142,7 +142,7 @@ func setEnvironement(system, architecture string) {
 	os.Setenv("GOARCH", architecture)
 }
 
-func executeBuild() error {
+func executeGoBuild() error {
 	cmd := exec.Command("go", "build")
 	err := cmd.Run()
 	if err != nil {
