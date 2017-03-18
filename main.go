@@ -145,9 +145,5 @@ func setEnvironement(system, architecture string) {
 func executeGoBuild() error {
 	cmd := exec.Command("go", "build")
 	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
