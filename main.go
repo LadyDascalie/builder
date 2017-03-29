@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -124,11 +125,19 @@ func performBuild(wg *sync.WaitGroup, o, a string) {
 	// I could use os.Rename, but linking and removing after is safer...
 	if o == "windows" {
 		filename := fmt.Sprintf("%s%s", project, windowsExtension)
-		os.Link(filename, fmt.Sprintf("./%s/%s/%s%s", buildPath, platform, project, windowsExtension))
-		os.Remove(filename)
+		if err := os.Link(filename, fmt.Sprintf("./%s/%s/%s%s", buildPath, platform, project, windowsExtension)); err != nil {
+			log.Println("Error moving file:", filename)
+		}
+		if err := os.Remove(filename); err != nil {
+			log.Println("Error removing file:", filename)
+		}
 	} else {
-		os.Link(project, fmt.Sprintf("./%s/%s/%s", buildPath, platform, project))
-		os.Remove(project)
+		if err := os.Link(project, fmt.Sprintf("./%s/%s/%s", buildPath, platform, project)); err != nil {
+			log.Println("Error moving file:", project)
+		}
+		if err := os.Remove(project); err != nil {
+			log.Println("Error removing file:", project)
+		}
 	}
 }
 
@@ -138,8 +147,12 @@ func getFromEnvironement() {
 }
 
 func setEnvironement(system, architecture string) {
-	os.Setenv("GOOS", system)
-	os.Setenv("GOARCH", architecture)
+	if err := os.Setenv("GOOS", system); err != nil {
+		log.Fatalln("Could not sset GOOS environment variable")
+	}
+	if err := os.Setenv("GOARCH", architecture); err != nil {
+		log.Fatalln("Could not set GOARCH environment variable")
+	}
 }
 
 func executeGoBuild() error {
