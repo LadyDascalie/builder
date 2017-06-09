@@ -9,6 +9,7 @@ import (
 	"path"
 	"sync"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/color"
 )
 
@@ -27,8 +28,9 @@ var (
 	architectures = []string{"amd64", "386"}
 	systems       = []string{"darwin", "linux", "windows"}
 
-	// user specified system to target
-	target string
+	// user specified system to targetPlatform
+	targetPlatform     string
+	targetArchitecture string
 )
 
 func init() {
@@ -45,13 +47,21 @@ func init() {
 }
 
 func main() {
-	flag.StringVar(&target, "for", "", "builder -for linux")
+	flag.StringVar(&targetPlatform, "for", "", "builder -for linux")
+	flag.StringVar(&targetArchitecture, "arch", "", "builder -for linux -arch amd64")
 	flag.Parse()
 
 	// only pass in current target
-	if target != "" && isSupported(target) {
-		systems = []string{target}
+	if targetPlatform != "" && isSupported(targetPlatform, systems) {
+		systems = []string{targetPlatform}
 	}
+
+	if targetArchitecture != "" && isSupported(targetArchitecture, architectures) {
+		architectures = []string{targetArchitecture}
+	}
+
+	spew.Dump(systems, architectures)
+	os.Exit(1)
 
 	clearBuilds()
 
@@ -65,6 +75,7 @@ func main() {
 			wg.Wait()
 		}
 	}
+
 	// reset the environment before exiting
 	setEnvironement(currentOS, currentArchchitecture)
 
@@ -72,9 +83,9 @@ func main() {
 	fmt.Println(notice)
 }
 
-func isSupported(target string) bool {
-	for _, sys := range systems {
-		if target == sys {
+func isSupported(target string, list []string) bool {
+	for _, item := range list {
+		if target == item {
 			return true
 		}
 	}
