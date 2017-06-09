@@ -9,7 +9,6 @@ import (
 	"path"
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fatih/color"
 )
 
@@ -59,9 +58,6 @@ func main() {
 	if targetArchitecture != "" && isSupported(targetArchitecture, architectures) {
 		architectures = []string{targetArchitecture}
 	}
-
-	spew.Dump(systems, architectures)
-	os.Exit(1)
 
 	clearBuilds()
 
