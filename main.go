@@ -132,18 +132,12 @@ func performBuild(wg *sync.WaitGroup, o, a string) {
 	// I could use os.Rename, but linking and removing after is safer...
 	if o == "windows" {
 		filename := fmt.Sprintf("%s%s", project, windowsExtension)
-		if err := os.Link(filename, fmt.Sprintf("./%s/%s/%s%s", buildPath, platform, project, windowsExtension)); err != nil {
-			log.Println("Error moving file:", filename)
-		}
-		if err := os.Remove(filename); err != nil {
-			log.Println("Error removing file:", filename)
+		if err := os.Rename(filename, fmt.Sprintf("./%s/%s/%s%s", buildPath, platform, project, windowsExtension)); err != nil {
+			log.Printf("could not move file: %v", err)
 		}
 	} else {
-		if err := os.Link(project, fmt.Sprintf("./%s/%s/%s", buildPath, platform, project)); err != nil {
-			log.Println("Error moving file:", project)
-		}
-		if err := os.Remove(project); err != nil {
-			log.Println("Error removing file:", project)
+		if err := os.Rename(project, fmt.Sprintf("./%s/%s/%s", buildPath, platform, project)); err != nil {
+			log.Printf("could not move file: %v", err)
 		}
 	}
 }
