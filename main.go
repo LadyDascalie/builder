@@ -129,7 +129,6 @@ func performBuild(wg *sync.WaitGroup, o, a string) {
 		return
 	}
 
-	// I could use os.Rename, but linking and removing after is safer...
 	if o == "windows" {
 		filename := fmt.Sprintf("%s%s", project, windowsExtension)
 		if err := os.Rename(filename, fmt.Sprintf("./%s/%s/%s%s", buildPath, platform, project, windowsExtension)); err != nil {
