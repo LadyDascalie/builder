@@ -75,7 +75,7 @@ func main() {
 	// reset the environment before exiting
 	setEnvironement(currentOS, currentArchchitecture)
 
-	notice := color.GreenString("Done!\nYou will your build under the '%s' folder", buildPath)
+	notice := color.GreenString("Done!\nYou will find your build under the '%s' folder", buildPath)
 	fmt.Println(notice)
 }
 
